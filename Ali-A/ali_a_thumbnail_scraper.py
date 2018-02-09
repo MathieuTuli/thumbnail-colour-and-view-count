@@ -8,13 +8,13 @@ import shutil
 import random
 import numpy
 import matplotlib.pyplot as plt
-import tensorflow as tf
+# import tensorflow as tf
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from PIL import Image
 from collections import namedtuple
-from math import sqrtz
+# from math import sqrtz
 
 #global variables
 Point = namedtuple('Point', ('coords', 'n', 'ct'))
@@ -23,7 +23,7 @@ rtoh = lambda rgb: '#%s' % ''.join(('%02x' % p for p in rgb))
 
 class LoadedBrowser:
     def __init__(self, site):
-        self.browser = webdriver.Chrome("C:/Users/tulim/Documents/Code/web scrapers/Ali-A/chromedriver.exe")
+        self.browser = webdriver.Chrome("chromedriver.exe")
         print("\nOpening browser...")
         self.browser.get(site)
         print("Browser open.\n")
@@ -127,18 +127,18 @@ def find_images(body, counter):
 
 def find_views(body, counter):
     elem = body.find_elements_by_tag_name('ytd-grid-video-renderer')
-    for item in elem:
-        #info tags are identical for views and for video time
-        #tbh, this magically skips over the video time
-        info_tags = item.find_element_by_xpath('.//span[@class = "style-scope ytd-grid-video-renderer"]')
-        text = info_tags.text
-        # print(counter, " : ",text)
-        with open("info.txt", 'wb') as f:
+    with open("views.txt", 'w') as f:
+        for item in elem:
+            #info tags are identical for views and for video time
+            #tbh, this magically skips over the video time
+            info_tags = item.find_element_by_xpath('.//span[@class = "style-scope ytd-grid-video-renderer"]')
+            text = info_tags.text
+            # print(counter, " : ",text)
             try:
-                f.write(text)
+                f.write(str(counter) + " : " + text + '\n')
             except:
-                counter += 1
                 continue
+            counter += 1
     return counter
 
 def most_frequent_colour(image):
@@ -234,41 +234,38 @@ def kmeans(points, k, mind_diff):
 
     return clusters
 
-def find_dominant_colours(filename):
-
-
 if __name__ == '__main__':
     print("\n\n__START__\n")
     site = 'https://www.youtube.com/user/Matroix/videos'
-    # chromeBrowser = LoadedBrowser(site)
-    #
+    chromeBrowser = LoadedBrowser(site)
+
     errorCode = 0
-    # numVideos = 0
-    # try:
-    #     print('Scrolling browser...')
-    #     chromeBrowser.scroll()
-    #     errorCode = 1
-    #     print('Browser scrolled.\n\nResetting folders...')
-    #     reset_folders()
-    #     errorCode = 2
-    #     print('Folders reset.\n\nFinding images...')
-    #     find_images(chromeBrowser.body, 0)
-    #     errorCode = 3
-    #     print('Images found.\n\nFinding views...')
-    #     numVideos = find_views(chromeBrowser.body, 0)
-    #     errorCode = 4
-    #     print('Views found.')
-    # except Exception as e:
-    #     if errorCode == 0:
-    #         print("\nScrolling failed.: ", e)
-    #     elif errorCode == 1:
-    #         print("\nResetting folders failed: ", e)
-    #     elif errorCode == 2:
-    #         print("\nFinding images failed: ", e)
-    #     elif errorCode == 3:
-    #         print("\nFinding views failed: ", e)
-    #
-    # chromeBrowser.close()
+    numVideos = 0
+    try:
+        print('Scrolling browser...')
+        chromeBrowser.scroll()
+        errorCode = 1
+        print('Browser scrolled.\n\nResetting folders...')
+        reset_folders()
+        errorCode = 2
+        print('Folders reset.\n\nFinding images...')
+        find_images(chromeBrowser.body, 0)
+        errorCode = 3
+        print('Images found.\n\nFinding views...')
+        numVideos = find_views(chromeBrowser.body, 0)
+        errorCode = 4
+        print('Views found.')
+    except Exception as e:
+        if errorCode == 0:
+            print("\nScrolling failed.: ", e)
+        elif errorCode == 1:
+            print("\nResetting folders failed: ", e)
+        elif errorCode == 2:
+            print("\nFinding images failed: ", e)
+        elif errorCode == 3:
+            print("\nFinding views failed: ", e)
+
+    chromeBrowser.close()
 
     # try:
     #     print('\nFinding most frequent colour...')
