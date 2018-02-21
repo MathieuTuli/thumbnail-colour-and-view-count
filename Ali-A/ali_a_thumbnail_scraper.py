@@ -6,7 +6,7 @@ import imghdr
 import sys
 import shutil
 import random
-import numpy
+import numpy as np
 import matplotlib.pyplot as plt
 # import tensorflow as tf
 from bs4 import BeautifulSoup
