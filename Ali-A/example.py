@@ -6,8 +6,65 @@ from math import sqrt
 from PIL import Image
 import matplotlib.pyplot as plt
 import cv2
+import colorsys
 
 sess = tf.Session()
+red_min = 0
+red_max = 15
+red_min_2 = 350
+red_max_2 = 360
+pink_min = 300
+pink_max = 350
+orange_min = 15
+orange_max = 45
+yellow_min = 45
+yellow_max = 75
+green_min = 75
+green_max = 155
+cyan_min = 155
+cyan_max = 200
+blue_min = 200
+blue_max = 255
+purple_min = 255
+purple_max = 300
+# white_min =
+# white_max =
+# black_min =
+# black_max =
+
+def map_pixels(h,s,v):
+    #black
+    if(v <= 255):
+        return 0,0,0
+    #white
+    if(s <= 255):
+        return 255,255,255
+    #red
+    if(h >= red_min and h <= red_max):
+        return 255, 0, 0
+    elif(h >= red_min_2 and h <= red_max_2):
+        return 255, 0, 0
+    #pink
+    elif(h >= pink_min and h <= pink_max):
+        return 255, 0, 255
+    #orange
+    elif(h >= orange_min and h <= orange_max):
+        return 255, 125, 0
+    #yellow
+    elif(h >= yellow_min and h <= yellow_max):
+        return 255, 255, 0
+    #green
+    elif(h >= green_min and h <= green_max):
+        return 0, 255, 0
+    #cyan
+    elif(h >= cyan_min and h <= cyan_max):
+        return 0, 255, 255
+    #blue
+    elif(h >= blue_min and h <= blue_max):
+        return 0, 0, 255
+    #purple
+    elif(h >= purple_min and h <= purple_max):
+        return 125, 0, 255
 
 #of all images in jpg_images, return a matrix, size [N,D], D=3
 #also return K clusters, randomly assigned to points (rows) in prev matrix
@@ -17,7 +74,7 @@ def get_data(K, path, imageType):
     print('Getting data...')
     #the first 2 thumbnails have only been uploaded recently, hence discard
     #them as anomolies
-    i = 1
+    num_pixels = 0
     numFails = 0
     numSuccesses = 0
     errorCode = 0
@@ -39,15 +96,21 @@ def get_data(K, path, imageType):
     #         numFails += 1
         # i += 1
 
-    img = Image.open('jpg_images/36.jpg')
-    w, h = img.size
-    rgb_im = img.convert('RGB')
+    img = cv2.cvtColor(cv2.imread('jpg_images/18.jpg'), cv2.COLOR_BGR2HSV)
+    w, h, channels = img.shape
+    hRatio = 360/179 #cv2 hue is in range 0-179
+    svRatio = 1000/255 #s and v in range 0-255
     for i in range(w):
         for j in range(h):
-            r, g, b = rgb_im.getpixel((i, j))
-            data.append([r,g,b])
+            try:
+                h,s,v = img[i,j]
+                r,g,b = map_pixels(h * hRatio, s * svRatio, v*svRatio)
+                data.append([r,g,b])
+                num_pixels += 1
+            except:
+                continue
 
-    print('Total successful images parsed: ', numSuccesses, '.')
+    print('Total successful images parsed: ', numSuccesses)
     if errorCode == 0:
         print('ERROR: Couldn\'t open image')
     elif errorCode == 1:
@@ -59,12 +122,11 @@ def get_data(K, path, imageType):
 
     for k in range(K):
         try:
-            clusters.append(data[random.randint(0, i)])
+            clusters.append(data[random.randint(0, num_pixels)])
             errorCode = 5
         except:
             errorCode = 6
             break
-
     if errorCode == 4:
         print('ERROR: Couldn\'t append to clusters')
 
